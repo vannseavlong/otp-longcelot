@@ -1,13 +1,12 @@
 import bcrypt from 'bcryptjs';
-import { KnexStorage } from '../adapters/knexStorage.js';
-import { knex } from '../db/knex.js';
 import { computeHmacHex } from '../utils/hmac.js';
 
 export class LinkService {
   // tokenProvider(token) returns candidate link token rows for the given token
-  constructor(public storage: KnexStorage, public tokenProvider?: (token: string) => Promise<any[]>) {
+  constructor(public storage: any, public tokenProvider?: (token: string) => Promise<any[]>) {
     if (!this.tokenProvider) {
       this.tokenProvider = async (token: string) => {
+        const { knex } = await import('../db/knex.js');
         const token_hmac = computeHmacHex(token);
         return await knex('link_tokens').where({ token_hmac, used: false }).andWhere('expires_at', '>', knex.fn.now());
       };

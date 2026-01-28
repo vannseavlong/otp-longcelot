@@ -10,6 +10,24 @@ jobs:
   publish:
     name: Publish to npm on tag
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_CLIENT: pg
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/otp_test
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: otp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,8 +42,9 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install system build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential python3 g++ libsqlite3-dev
-
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 python-is-python3 g++ pkg-config libssl-dev ca-certificates
       - name: Install dependencies
         run: pnpm install
 
