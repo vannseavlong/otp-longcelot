@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Rebuild sqlite3 native bindings
+        run: |
+          # ensure native modules are built for the runner's Node version
+          npm rebuild sqlite3 --build-from-source || pnpm rebuild sqlite3 -- --build-from-source || true
+
       - name: Build
         run: pnpm build
 
