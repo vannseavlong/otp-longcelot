@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "Telegram OTP Auth API",
+    "description": "API collection for Telegram-based OTP authentication system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "challengeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "linkToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "debugOtp",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"username\": \"testuser\",\n  \"password\": \"securepassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        },
+        "description": "Register a new user with email, username, and password. Telegram is not yet linked."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.user && jsonData.user.id) {",
+              "        pm.collectionVariables.set('userId', jsonData.user.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Initiate Telegram Link",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": {{userId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/telegram/link/initiate",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "telegram", "link", "initiate"]
+        },
+        "description": "Generate a link token for Telegram account linking. User must send /start <token> to the bot."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.link_token) {",
+              "        pm.collectionVariables.set('linkToken', jsonData.link_token);",
+              "        console.log('Link token: ' + jsonData.link_token);",
+              "        console.log('Send to Telegram bot: /start ' + jsonData.link_token);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Login (Get OTP Challenge)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"securepassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Login with username/email and password. Returns challengeId. OTP is sent to linked Telegram. If DEBUG_OTP=true, response includes debug_otp field."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.challengeId) {",
+              "        pm.collectionVariables.set('challengeId', jsonData.challengeId);",
+              "    }",
+              "    if (jsonData.debug_otp) {",
+              "        console.log('DEBUG OTP: ' + jsonData.debug_otp);",
+              "        pm.collectionVariables.set('debugOtp', jsonData.debug_otp);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Verify Login OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"challengeId\": {{challengeId}},\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login/verify-otp",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login", "verify-otp"]
+        },
+        "description": "Verify the OTP received via Telegram. Returns JWT token on success."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.token) {",
+              "        pm.collectionVariables.set('authToken', jsonData.token);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Initiate Sensitive OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"securepassword123\",\n  \"context\": \"password_change\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/otp/initiate",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "otp", "initiate"]
+        },
+        "description": "Request OTP for sensitive actions (password change, email update, etc.). Context describes the action."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.challengeId) {",
+              "        pm.collectionVariables.set('challengeId', jsonData.challengeId);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Initiate Telegram Change",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"securepassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/telegram/change/initiate",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "telegram", "change", "initiate"]
+        },
+        "description": "Request to change linked Telegram account. OTP is sent to CURRENT linked Telegram for verification."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.challengeId) {",
+              "        pm.collectionVariables.set('challengeId', jsonData.challengeId);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Confirm Telegram Change",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"challengeId\": {{challengeId}},\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/telegram/change/confirm",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "telegram", "change", "confirm"]
+        },
+        "description": "Confirm Telegram change with OTP. Old Telegram binding is revoked. User must initiate new linking."
+      },
+      "response": []
+    },
+    {
+      "name": "8. Recover via Recovery Code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"testuser\",\n  \"recovery_code\": \"RC-XXXX-XXXX\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/telegram/recover/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "telegram", "recover", "verify"]
+        },
+        "description": "Use a recovery code when Telegram access is lost. Revokes old Telegram binding; user must initiate new linking."
+      },
+      "response": []
+    }
+  ]
+}
