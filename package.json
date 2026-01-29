@@ -18,7 +18,9 @@
     "dist",
     "README.md",
     "LICENSE",
-    "examples"
+    "examples",
+    "migrations",
+    "knexfile.cjs"
   ],
   "repository": {
     "type": "git",

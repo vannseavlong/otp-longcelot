@@ -6,6 +6,12 @@ import createApp from './app.js';
 import { Telegraf } from 'telegraf';
 import { limiter } from './middlewares/rateLimiter.js';
 import { knex } from './db/knex.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const migrationsDir = path.resolve(__dirname, '../migrations');
 
 process.on('uncaughtException', (err) => {
   console.error('uncaughtException', err);
@@ -18,7 +24,7 @@ process.on('unhandledRejection', (reason) => {
 async function main() {
   // Run any pending migrations so DB schema matches code expectations (adds HMAC columns)
   try {
-    await knex.migrate.latest({ directory: './migrations' });
+    await knex.migrate.latest({ directory: migrationsDir });
     console.log('Migrations applied');
   } catch (e) {
     console.warn('Migrations failed or were not applied:', (e as Error).message);
