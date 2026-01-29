@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  migrate:
+    env_file: .env
+    environment:
+      - DATABASE_CLIENT
+      - DATABASE_URL
+      - NODE_ENV
+
+  app:
+    env_file: .env
+    environment:
+      - DATABASE_CLIENT
+      - DATABASE_URL
+      - NODE_ENV
+      - PORT
+      - TELEGRAM_BOT_TOKEN
+      - JWT_SECRET
+      - HMAC_SECRET
