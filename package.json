@@ -1,6 +1,6 @@
 {
   "name": "otp-telegram-longcelot",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "private": false,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "test": "pnpm run build && node --test tests/*.test.mjs",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "example:embedded":"pnpm run build && node examples/embedded/app.mjs"
+    "example:embedded": "pnpm run build && node examples/embedded/app.mjs"
   },
   "main": "dist/index.js",
   "files": [
@@ -24,7 +24,13 @@
     "type": "git",
     "url": "git+https://github.com/vannseavlong/otp-longcelot.git"
   },
-  "keywords": ["otp","telegram","authentication","auth","2fa"],
+  "keywords": [
+    "otp",
+    "telegram",
+    "authentication",
+    "auth",
+    "2fa"
+  ],
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
